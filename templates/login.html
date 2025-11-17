@@ -1,36 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login Page</title>
-  <!-- Linking CSS file -->
+
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
   <div class="login-container">
     <h2>Login</h2>
-    <form action="/login" method="post">
+
+    <form id="loginForm">
       <div class="input-group">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required>
+        <label>Username</label>
+        <input type="text" id="username" required>
       </div>
 
       <div class="input-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
+        <label>Password</label>
+        <input type="password" id="password" required>
       </div>
 
       <button type="submit">Login</button>
     </form>
 
-    {% if message %}
-      <p style="color: red;">{{ message }}</p>
-    {% endif %}
+    <p id="message" style="color:red;"></p>
 
     <p>Don't have an account?
       <a href="{{ url_for('signup') }}">Sign up here</a>
     </p>
   </div>
+
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      const response = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("jwt_token", data.token);
+        window.location.href = "/dashboard";
+      } else {
+        document.getElementById("message").innerText = data.message;
+      }
+    });
+  </script>
+
 </body>
 </html>

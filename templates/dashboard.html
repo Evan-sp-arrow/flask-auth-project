@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <!-- Dark/Light Theme CSS -->
+  <style>
+    body {
+      transition: background 0.3s ease, color 0.3s ease;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    /* Dark mode styles */
+    body.dark {
+      background: #121212;
+      color: white;
+    }
+
+    /* Light mode background (default) */
+    body {
+      background: #f3f3f3;
+      color: #222;
+    }
+
+    /* Common button styling */
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    #logoutBtn {
+      background-color: #ff4d4d;
+      color: white;
+    }
+
+    #logoutBtn:hover {
+      background-color: #d93636;
+    }
+
+    #themeBtn {
+      background-color: #5563DE;
+      color: white;
+    }
+
+    #themeBtn:hover {
+      background-color: #3943a7;
+    }
+
+    /* Welcome text styling */
+    #welcome {
+      margin-top: 120px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+  </style>
+
+</head>
+<body>
+
+  <!-- Logout button at top-right corner -->
+  <button id="logoutBtn" style="position:absolute; top:20px; right:20px;">
+    Logout
+  </button>
+
+  <!-- Theme toggle button at top-left corner -->
+  <button id="themeBtn" style="position:absolute; top:20px; left:20px;">
+    Dark Mode
+  </button>
+
+  <!-- This text will be replaced with the real message from the server -->
+  <h2 id="welcome">Loading...</h2>
+
+
+  <!-- Logout button script -->
+  <script>
+    document.getElementById("logoutBtn").onclick = function () {
+      localStorage.removeItem("jwt_token"); // remove token
+      window.location.href = "/"; // go to login
+    };
+  </script>
+
+
+  <!-- Dark/Light theme toggle script -->
+  <script>
+    // Load saved theme on page open
+    const savedTheme = localStorage.getItem("theme");
+
+    if (savedTheme === "dark") {
+      document.body.classList.add("dark");
+      document.getElementById("themeBtn").innerText = "Light Mode";
+    }
+
+    // Theme button logic
+    document.getElementById("themeBtn").onclick = function () {
+      document.body.classList.toggle("dark");
+
+      if (document.body.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+        document.getElementById("themeBtn").innerText = "Light Mode";
+      } else {
+        localStorage.setItem("theme", "light");
+        document.getElementById("themeBtn").innerText = "Dark Mode";
+      }
+    };
+  </script>
+
+
+  <!-- Dashboard data loading script -->
+  <script>
+    async function loadDashboard() {
+
+      // STEP 1 — Get the JWT token saved during login
+      const token = localStorage.getItem("jwt_token");
+
+      // If token is missing → user NOT logged in
+      if (!token) {
+        alert("Not logged in — please sign in.");
+        window.location.href = "/";
+        return;
+      }
+
+      // STEP 2 — Send token to backend
+      const res = await fetch("/api/dashboard-data", {
+        method: "GET",
+        headers: { "Authorization": "Bearer " + token }
+      });
+
+      // STEP 3 — Check validity
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Unauthorized' }));
+        alert(err.message || err.msg || "Unauthorized. Please login again.");
+
+        localStorage.removeItem("jwt_token");
+        window.location.href = "/";
+        return;
+      }
+
+      // STEP 4 — Read response
+      const data = await res.json();
+
+      // STEP 5 — Show welcome text
+      document.getElementById("welcome").innerText = data.message;
+    }
+
+    // AUTO RUN on page load
+    window.onload = loadDashboard;
+  </script>
+
+</body>
+</html>

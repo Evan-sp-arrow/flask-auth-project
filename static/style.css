@@ -13,6 +13,15 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+
+  /* Smooth transition for dark mode */
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/*  Dark Mode */
+body.dark {
+  background: #121212 !important;
+  color: white !important;
 }
 
 /* Login box container */
